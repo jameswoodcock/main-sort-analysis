@@ -1,10 +1,11 @@
+rm(list = ls())
 library(DistatisR)
 library(MASS)
 library(vegan)
 library(ggplot2)
 
 material = "RD"
-screePlot = TRUE
+screePlot = FALSE
 figPath = paste("./plots/",material,"/",sep="")
 
 data <- read.csv(paste("./data/data",material,".csv",sep=""),row.names=1,header=T)
