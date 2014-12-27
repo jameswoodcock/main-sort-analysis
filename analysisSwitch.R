@@ -4,8 +4,8 @@ library(MASS)
 library(vegan)
 library(ggplot2)
 
-material = "RD"
-screePlot = FALSE
+material = "SS"
+screePlot = TRUE
 figPath = paste("./plots/",material,"/",sep="")
 
 data <- read.csv(paste("./data/data",material,".csv",sep=""),row.names=1,header=T)
@@ -17,7 +17,7 @@ totDist <- apply(distCube,c(1,2),sum)/11
 clust = hclust(dist(totDist)^2,"ward")
 
 ngroups <- apply(data,2,max)
-ngroupsbar <- data.frame(participant = c("P1","P2","P3","P4","P6","P7"),ngroups = ngroups)
+ngroupsbar <- data.frame(participant = colnames(data),ngroups = ngroups)
 
 pdf(paste(figPath,"ngroups.pdf",sep=""),width = 10,height = 10)
 print(
