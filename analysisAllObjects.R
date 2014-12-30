@@ -4,8 +4,8 @@ library(MASS)
 library(vegan)
 library(ggplot2)
 
-material = "LE"
-screePlot = TRUE
+material = "ALL"
+screePlot = FALSE
 figPath = paste("./plots/",material,"/",sep="")
 mdsClusters = 5
 
@@ -27,7 +27,7 @@ ggplot(ngroupsbar,aes(x=participant,ngroups)) + geom_bar(stat="identity") + labs
 dev.off()
 
 for (i in 2:11) {
-pdf(paste(figPath,"dendro_",i,"groups.pdf",sep=""),width = 11, height = 8)
+pdf(paste(figPath,"dendro_",i,"groups.pdf",sep=""),width = 44, height = 16)
 #plot(clust,hang=-1)
 plot(clust, xlab=NA, sub=NA, main=NA, cex = 0.5)
 rect.hclust(clust,k=i,border="red")
