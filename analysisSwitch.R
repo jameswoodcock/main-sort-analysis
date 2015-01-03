@@ -19,7 +19,7 @@ clust = hclust(dist(totDist)^2,"ward")
 
 ngroups <- apply(data,2,max)
 ngroupsbar <- data.frame(participant = colnames(data),ngroups = ngroups)
-mdsClusters = median(ngroups)
+mdsClusters = ceiling(median(ngroups))
 
 
 pdf(paste(figPath,"ngroups.pdf",sep=""),width = 10,height = 10)
