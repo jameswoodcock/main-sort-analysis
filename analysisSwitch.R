@@ -5,9 +5,9 @@ library(vegan)
 library(ggplot2)
 
 material = "LE"
-screePlot = TRUE
+screePlot = FALSE
 figPath = paste("./plots/",material,"/",sep="")
-mdsClusters = 5
+
 
 data <- read.csv(paste("./data/data",material,".csv",sep=""),row.names=1,header=T)
 
@@ -19,6 +19,8 @@ clust = hclust(dist(totDist)^2,"ward")
 
 ngroups <- apply(data,2,max)
 ngroupsbar <- data.frame(participant = colnames(data),ngroups = ngroups)
+mdsClusters = median(ngroups)
+
 
 pdf(paste(figPath,"ngroups.pdf",sep=""),width = 10,height = 10)
 print(
@@ -32,6 +34,13 @@ pdf(paste(figPath,"dendro_",i,"groups.pdf",sep=""),width = 11, height = 8)
 plot(clust, xlab=NA, sub=NA, main=NA, cex = 0.5)
 rect.hclust(clust,k=i,border="red")
 dev.off()
+if (i==mdsClusters){
+pdf(paste(figPath,"dendro_median_groups.pdf",sep=""),width = 11, height = 8)
+#plot(clust,hang=-1)
+plot(clust, xlab=NA, sub=NA, main=NA, cex = 0.5)
+rect.hclust(clust,k=i,border="red")
+dev.off()
+}
 }
 
 #Do some MDS!!!!
@@ -83,12 +92,13 @@ for (i in 2:mdsClusters){
 groupLabs <- append(groupLabs,toString(i))
 }
 
+textSize = 3
 
 pdf(paste(figPath,"mdsdim1dim2.pdf",sep=""),width = 10,height = 10)
 #plot(dim1nm,dim2nm,type="n")
 #text(dim1nm, dim2nm, labels = row.names(data), cex=.7)
 print(
-ggplot(df3,aes(x = dim1nm,y = dim2nm,label=rownames(df3),color=factor(groups))) + geom_point(aes(shape=factor(groups)),size=5) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension II")+ scale_color_discrete(name = "Group",labels = groupLabs) + scale_shape_discrete(name = "Group",labels = groupLabs) + theme(legend.position = c(.9,.9))
+ggplot(df3,aes(x = dim1nm,y = dim2nm,label=rownames(df3),color=factor(groups))) + geom_point(aes(shape=factor(groups)),size=5) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension II")+ scale_color_discrete(name = "Group",labels = groupLabs) + scale_shape_discrete(name = "Group",labels = groupLabs) + theme(legend.position = c(.9,.9)) + ggtitle(material)
 )
 #plot(nmmds,type="t")
 dev.off()
@@ -97,7 +107,7 @@ pdf(paste(figPath,"mdsdim1dim2text.pdf",sep=""),width = 10, height = 10)
 #plot(dim1nm,dim2nm,type="n")
 #text(dim1nm, dim2nm, labels = row.names(data), cex=.7)
 print(
-ggplot(df3,aes(x = dim1nm,y = dim2nm,label=rownames(df3),color=factor(groups))) + geom_text(aes(shape=factor(groups))) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension II") + scale_color_discrete(name = "Group",labels = groupLabs) + theme(legend.position = c(.9,.9))
+ggplot(df3,aes(x = dim1nm,y = dim2nm,label=rownames(df3),color=factor(groups))) + geom_text(size = textSize) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension II") + scale_color_discrete(name = "Group",labels = groupLabs) + theme(legend.position = c(.9,.9)) + ggtitle(material)
 )
 #plot(nmmds,type="t")
 dev.off()
@@ -106,7 +116,7 @@ pdf(paste(figPath,"mdsdim1dim3.pdf",sep=""),width = 10,height = 10)
 #plot(dim1nm,dim2nm,type="n")
 #text(dim1nm, dim2nm, labels = row.names(data), cex=.7)
 print(
-ggplot(df3,aes(x = dim1nm,y = dim3nm,label=rownames(df3),color=factor(groups))) + geom_point(aes(shape=factor(groups)),size=5) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension III")+ scale_color_discrete(name = "Group",labels = groupLabs) + scale_shape_discrete(name = "Group",labels = groupLabs) + theme(legend.position = c(.9,.9))
+ggplot(df3,aes(x = dim1nm,y = dim3nm,label=rownames(df3),color=factor(groups))) + geom_point(aes(shape=factor(groups)),size=5) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension III")+ scale_color_discrete(name = "Group",labels = groupLabs) + scale_shape_discrete(name = "Group",labels = groupLabs) + theme(legend.position = c(.9,.9)) + ggtitle(material)
 )
 #plot(nmmds,type="t")
 dev.off()
@@ -115,7 +125,7 @@ pdf(paste(figPath,"mdsdim1dim3text.pdf",sep=""),width = 10, height = 10)
 #plot(dim1nm,dim2nm,type="n")
 #text(dim1nm, dim2nm, labels = row.names(data), cex=.7)
 print(
-ggplot(df3,aes(x = dim1nm,y = dim3nm,label=rownames(df3),color=factor(groups))) + geom_text(aes(shape=factor(groups))) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension III") + scale_color_discrete(name = "Group",labels = groupLabs) + theme(legend.position = c(.9,.9))
+ggplot(df3,aes(x = dim1nm,y = dim3nm,label=rownames(df3),color=factor(groups))) + geom_text(size = textSize) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension III") + scale_color_discrete(name = "Group",labels = groupLabs) + theme(legend.position = c(.9,.9)) + ggtitle(material)
 )
 #plot(nmmds,type="t")
 dev.off()
@@ -124,7 +134,7 @@ pdf(paste(figPath,"mdsdim1dim4text.pdf",sep=""),width = 10, height = 10)
 #plot(dim1nm,dim2nm,type="n")
 #text(dim1nm, dim2nm, labels = row.names(data), cex=.7)
 print(
-ggplot(df3,aes(x = dim1nm,y = dim4nm,label=rownames(df3),color=factor(groups))) + geom_text(aes(shape=factor(groups))) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension IV") + scale_color_discrete(name = "Group",labels = groupLabs) + theme(legend.position = c(.9,.9))
+ggplot(df3,aes(x = dim1nm,y = dim4nm,label=rownames(df3),color=factor(groups))) + geom_text(size = textSize) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension IV") + scale_color_discrete(name = "Group",labels = groupLabs) + theme(legend.position = c(.9,.9)) + ggtitle(material)
 )
 #plot(nmmds,type="t")
 dev.off()
@@ -133,7 +143,7 @@ pdf(paste(figPath,"mdsdim2dim3text.pdf",sep=""),width = 10, height = 10)
 #plot(dim1nm,dim2nm,type="n")
 #text(dim1nm, dim2nm, labels = row.names(data), cex=.7)
 print(
-ggplot(df3,aes(x = dim2nm,y = dim3nm,label=rownames(df3),color=factor(groups))) + geom_text(aes(shape=factor(groups))) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension II",y = "Dimension III") + scale_color_discrete(name = "Group",labels = groupLabs) + theme(legend.position = c(.9,.9))
+ggplot(df3,aes(x = dim2nm,y = dim3nm,label=rownames(df3),color=factor(groups))) + geom_text(size = textSize) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension II",y = "Dimension III") + scale_color_discrete(name = "Group",labels = groupLabs) + theme(legend.position = c(.9,.9)) + ggtitle(material)
 )
 #plot(nmmds,type="t")
 dev.off()
@@ -142,7 +152,7 @@ pdf(paste(figPath,"mdsdim3dim4text.pdf",sep=""),width = 10, height = 10)
 #plot(dim1nm,dim2nm,type="n")
 #text(dim1nm, dim2nm, labels = row.names(data), cex=.7)
 print(
-ggplot(df3,aes(x = dim3nm,y = dim4nm,label=rownames(df3),color=factor(groups))) + geom_text(aes(shape=factor(groups))) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension IV") + scale_color_discrete(name = "Group",labels = groupLabs) + theme(legend.position = c(.9,.9))
+ggplot(df3,aes(x = dim3nm,y = dim4nm,label=rownames(df3),color=factor(groups))) + geom_text(size = textSize) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension IV") + scale_color_discrete(name = "Group",labels = groupLabs) + theme(legend.position = c(.9,.9)) + ggtitle(material)
 )
 #plot(nmmds,type="t")
 dev.off()
