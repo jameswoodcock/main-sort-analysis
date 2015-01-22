@@ -3,23 +3,64 @@ library(DistatisR)
 library(MASS)
 library(vegan)
 library(ggplot2)
+library(pvclust)
 
-material = "LE"
+material = "FF"
 screePlot = FALSE
 figPath = paste("./plots/",material,"/",sep="")
-
+pvals = FALSE
 
 data <- read.csv(paste("./data/data",material,".csv",sep=""),row.names=1,header=T)
+experience <- read.csv(paste("./data/experience.csv",sep=""),row.names=1,header=T)
+
+experience <- experience[colnames(data),]
+
+acousticsExp <- array(rep(experience[,1],each = nrow(data)^2), c(nrow(data),nrow(data),ncol(data)))
+engineerExp <- array(rep(experience[,2],each = nrow(data)^2), c(nrow(data),nrow(data),ncol(data)))
+musicExp <- array(rep(experience[,3],each = nrow(data)^2), c(nrow(data),nrow(data),ncol(data)))
+
+Nsubs = dim(data)[2]
+NsubsAcoustics = sum(experience[,1])
+NsubsEngineer = sum(experience[,2])
+NsubsMusic = sum(experience[,3])
 
 distCube <- DistanceFromSort(data)
-totDist <- apply(distCube,c(1,2),sum)/11
-#diag(totDist) <- 1
-#dissMat <- abs(totDist-1)
-clust = hclust(dist(totDist)^2,"ward")
+distCubeAcoustics <- distCube*acousticsExp
+distCubeEngineer <- distCube*engineerExp
+distCubeMusic <- distCube*musicExp
+distCubeNonAcoustics <- distCube*abs(acousticsExp-1)
+distCubeNonEngineer <- distCube*abs(engineerExp-1)
+distCubeNonMusic <- distCube*abs(musicExp-1)
+totDist <- apply(distCube,c(1,2),sum)/Nsubs
+totDistAcoustics <- apply(distCubeAcoustics,c(1,2),sum)/NsubsAcoustics
+totDistEngineer <- apply(distCubeEngineer,c(1,2),sum)/NsubsEngineer
+totDistMusic <- apply(distCubeMusic,c(1,2),sum)/NsubsMusic
+totDistNonAcoustics <- apply(distCubeNonAcoustics,c(1,2),sum)/(Nsubs-NsubsAcoustics)
+totDistNonEngineer <- apply(distCubeNonEngineer,c(1,2),sum)/(Nsubs-NsubsEngineer)
+totDistNonMusic <- apply(distCubeNonMusic,c(1,2),sum)/(Nsubs-NsubsMusic)
+
+clust = hclust(dist(totDist),"ward.D2")
+clustAcoustics = hclust(dist(totDistAcoustics),"ward.D2")
+clustEngineer = hclust(dist(totDistEngineer),"ward.D2")
+clustMusic = hclust(dist(totDistMusic),"ward.D2")
+clustNonAcoustics = hclust(dist(totDistNonAcoustics),"ward.D2")
+clustNonEngineer = hclust(dist(totDistNonEngineer),"ward.D2")
+clustNonMusic = hclust(dist(totDistNonMusic),"ward.D2")
+if (pvals == TRUE){
+pvalsClust <- pvclust(totDist,method.hclust = "ward.D2",method.dist="euclidean",nboot=1000)
+}
 
 ngroups <- apply(data,2,max)
+ngroupsEngineer <- ngroups*experience[,1]
+ngroupsEngineer[which(ngroupsEngineer==0)] = NA
+ngroupsNonEngineer <- ngroups*abs(experience[,1]-1)
+ngroupsNonEngineer[which(ngroupsNonEngineer==0)] = NA
+
 ngroupsbar <- data.frame(participant = colnames(data),ngroups = ngroups)
 mdsClusters = ceiling(median(ngroups))
+mdsClustersEngineer = ceiling(median(ngroupsEngineer,na.rm=TRUE))
+mdsClustersNonEngineer = ceiling(median(ngroupsNonEngineer,na.rm=TRUE))
+
 
 
 pdf(paste(figPath,"ngroups.pdf",sep=""),width = 10,height = 10)
@@ -27,6 +68,23 @@ print(
 ggplot(ngroupsbar,aes(x=participant,ngroups)) + geom_bar(stat="identity") + labs(y="Number of groups",x="Participant") +theme_bw()
 )
 dev.off()
+
+pdf(paste(figPath,"dendro_all.pdf",sep=""),width = 11, height = 8)
+#plot(clust,hang=-1)
+plot(clust, xlab=NA, sub=NA, main=NA, cex = 0.5)
+rect.hclust(clust,k=6,border="red")
+dev.off()
+pdf(paste(figPath,"dendro_engineer.pdf",sep=""),width = 11, height = 8)
+#plot(clust,hang=-1)
+plot(clustEngineer, xlab=NA, sub=NA, main=NA, cex = 0.5)
+rect.hclust(clustEngineer,k=mdsClustersEngineer,border="red")
+dev.off()
+pdf(paste(figPath,"dendro_non_engineer.pdf",sep=""),width = 11, height = 8)
+#plot(clust,hang=-1)
+plot(clustNonEngineer, xlab=NA, sub=NA, main=NA, cex = 0.5)
+rect.hclust(clustNonEngineer,k=mdsClustersNonEngineer,border="red")
+dev.off()
+
 
 for (i in 2:11) {
 pdf(paste(figPath,"dendro_",i,"groups.pdf",sep=""),width = 11, height = 8)
@@ -156,3 +214,17 @@ ggplot(df3,aes(x = dim3nm,y = dim4nm,label=rownames(df3),color=factor(groups))) 
 )
 #plot(nmmds,type="t")
 dev.off()
+
+##DISTATIS analysis
+
+#testDistatis <- distatis(distCube)
+#BootF <- BootFactorScores(testDistatis$res4Splus$PartialF,niter=1000)
+#LeF	<- testDistatis$res4Splus$F
+#PartialFS <- testDistatis$res4Splus$PartialF
+#GraphDistatisBoot(LeF,BootF,PartialFS,ZeTitle="Bootstrap on Factors")
+
+#df4 <- data.frame(testDistatis$res4Cmat$G,experience)
+
+#ggplot(df4,aes(x = dim.1,y = dim.2,label=rownames(df4),color=factor(engineering))) + geom_point(aes(shape=factor(engineering)),size=5) + theme_bw()
+
+
