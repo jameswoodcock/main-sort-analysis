@@ -4,8 +4,9 @@ library(MASS)
 library(vegan)
 library(ggplot2)
 library(gplots)
+library(dendextend)
 
-material = "LE"
+material = "FF"
 figPath = paste("./plots/",material,"/",sep="")
 
 dataExp <- read.csv(paste("./data/labels_data/labels",material,"Exp.csv",sep=""),row.names=1,header=T)

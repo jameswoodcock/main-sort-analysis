@@ -3,6 +3,8 @@ library(DistatisR)
 library(MASS)
 library(vegan)
 library(ggplot2)
+library(gplots)
+library(dendextend)
 
 material = "ALL"
 screePlot = FALSE

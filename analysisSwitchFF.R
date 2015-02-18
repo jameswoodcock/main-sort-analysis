@@ -8,9 +8,9 @@ library(dendextend)
 library(gplots)
 library(devtools)
 
-material = "ALL"
+material = "FF"
 screePlot = FALSE
-ellipsePlot = FALSE
+ellipsePlot = TRUE
 figPath = paste("./plots/",material,"/",sep="")
 pvals = FALSE
 
@@ -145,8 +145,8 @@ nmmdsNonEngineer <- metaMDS(totDistNonEngineer,k=mdsDims,zerodist="ignore")
 #dim3nm <- mdsRes$FactorScore[,3]
 
 groups = cutree(clust,k=mdsClusters)
-groupsEngineer = cutree(clust,k=mdsClustersEngineer)
-groupsNonEngineer = cutree(clust,k=mdsClustersNonEngineer)
+groupsEngineer = cutree(clustEngineer,k=mdsClustersEngineer)
+groupsNonEngineer = cutree(clustNonEngineer,k=mdsClustersNonEngineer)
 
 df3 <- data.frame(nmmds$points,groups)
 df3Engineer <- data.frame(nmmdsEngineer$points,groupsEngineer)
@@ -285,16 +285,15 @@ library(devtools)
 source_url("https://raw.github.com/JoFrhwld/FAAV/master/r/stat-ellipse.R")
 #ggplot(df3Engineer,aes(x = MDS1,y = MDS2,label=rownames(df3),color=factor(groups))) + stat_ellipse(geom = "polygon", alpha = 1/2, aes(fill = factor(groups))) + geom_point(aes(shape=factor(groups)),size=1)
 
-df3EngineerRemoveNarrator <- df3Engineer[which(groups != 5),]
-df3centroidsEngineer <- aggregate(df3EngineerRemoveNarrator,by=list(groupsEngineer),FUN="mean")
+df3centroidsEngineer <- aggregate(df3Engineer,by=list(groupsEngineer),FUN="mean")
 pdf(paste(figPath,"mdsdim1dim2ellipseengineer.pdf",sep=""),width = 10, height = 10)
 #plot(dim1nm,dim2nm,type="n")
 #text(dim1nm, dim2nm, labels = row.names(data), cex=.7)
 print(
-ggplot(df3EngineerRemoveNarrator,aes(x = MDS1,y = MDS2,label=rownames(df3Engineer),color=factor(groupsEngineer))) + stat_ellipse(geom = "polygon", alpha = 1/2, aes(fill = factor(groupsEngineer))) + geom_point(size=1) + theme_bw()  + labs(x = "Dimension I",y = "Dimension II") + scale_color_discrete(name = "Group",labels = groupLabs)  + ggtitle(material) + geom_text(data=df3centroidsEngineer,aes(x = MDS1,y = MDS2,label=c("Individually\n identifiable\n background","Transients coinciding \n with onscreen action","Dialogue","Transients not\n coinciding with\n onscreen action"),color=factor(df3centroidsEngineer$groups)),fontface="bold") + theme(legend.position = "none")
+ggplot(df3Engineer,aes(x = MDS1,y = MDS2,label=rownames(df3Engineer),color=factor(groupsEngineer))) + stat_ellipse(geom = "polygon", alpha = 1/2, aes(fill = factor(groupsEngineer))) + geom_point(size=1) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension II") + scale_color_discrete(name = "Group",labels = groupLabs)  + ggtitle(material) + geom_text(data=df3centroidsEngineer,aes(x = MDS1,y = MDS2,label=c("Individually\n identifiable\n background","Transients coinciding \n with onscreen action","Dialogue","Transients not\n coinciding with\n onscreen action","Non-diegetic music\n and diffuse background"),color=factor(groupsEngineer)),fontface="bold") + theme(legend.position = "none")
 )# 
 #)
-#plot(nmmds,type="t") + xlim(-2,2) + ylim(-2,2)
+#plot(nmmds,type="t")
 dev.off()
 
 df3centroidsNonEngineer <- aggregate(df3NonEngineer,by=list(groupsNonEngineer),FUN="mean")
@@ -302,7 +301,7 @@ pdf(paste(figPath,"mdsdim1dim2ellipsenonengineer.pdf",sep=""),width = 10, height
 #plot(dim1nm,dim2nm,type="n")
 #text(dim1nm, dim2nm, labels = row.names(data), cex=.7)
 print(
-ggplot(df3NonEngineer,aes(x = MDS1,y = MDS2,label=rownames(df3NonEngineer),color=factor(groupsNonEngineer))) + stat_ellipse(geom = "polygon", alpha = 1/2, aes(fill = factor(groupsNonEngineer))) + geom_point(size=1) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension II") + scale_color_discrete(name = "Group",labels = groupLabs)  + ggtitle(material)+ geom_text(data=df3centroidsNonEngineer,aes(x = MDS1,y = MDS2,label=c("Individually\n identifiable\n background","Sounds related\n to action\n and movement","Dialogue","NO CLEAR\n GROUP","Non-diegetic music\n and diffuse background"),color=factor(groupsNonEngineer))) + theme(legend.position = "none")
+ggplot(df3NonEngineer,aes(x = MDS1,y = MDS2,label=rownames(df3NonEngineer),color=factor(groupsNonEngineer))) + stat_ellipse(geom = "polygon", alpha = 1/2, aes(fill = factor(groupsNonEngineer))) + geom_point(size=1) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension II") + scale_color_discrete(name = "Group",labels = groupLabs)  + ggtitle(material)+ geom_text(data=df3centroidsNonEngineer,aes(x = MDS1,y = MDS2,label=c("Individually\n identifiable\n background","Sounds related\n to action\n and movement","NO CLEAR\n GROUP","Dialogue","Non-diegetic music\n and diffuse background","Prominent\n transient\n sounds"),color=factor(groupsNonEngineer))) + theme(legend.position = "none")
 )# 
 #)
 #plot(nmmds,type="t")
@@ -313,7 +312,25 @@ pdf(paste(figPath,"mdsdim1dim2ellipseall.pdf",sep=""),width = 10, height = 10)
 #plot(dim1nm,dim2nm,type="n")
 #text(dim1nm, dim2nm, labels = row.names(data), cex=.7)
 print(
-ggplot(df3,aes(x = MDS1,y = MDS2,label=rownames(df3),color=factor(groups))) + stat_ellipse(geom = "polygon", alpha = 1/2, aes(fill = factor(groups))) + geom_point(size=1) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension II") + scale_color_discrete(name = "Group",labels = groupLabs)  + ggtitle(material)+ geom_text(data=df3centroids,aes(x = MDS1,y = MDS2,label=c("Individually\n identifiable\n background","Non-diegetic music\n and diffuse background","Transients coinciding \n with onscreen action","Prominent transients\n + UNGROUPED","Narration"),color=factor(groups))) + theme(legend.position = "none")
+ggplot(df3,aes(x = MDS1,y = MDS2,label=rownames(df3),color=factor(groups))) + stat_ellipse(geom = "polygon", alpha = 1/2, aes(fill = factor(groups))) + geom_point(size=1) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension II") + scale_color_discrete(name = "Group",labels = groupLabs)  + ggtitle(material)+ geom_text(data=df3centroids,aes(x = MDS1,y = MDS2,label=c("Individually\n identifiable\n background","Transients coinciding \n with onscreen action","Dialogue","Transients not\n coinciding with\n onscreen action\n + UNGROUPED","Non-diegetic music\n and diffuse background"),color=factor(groups))) + theme(legend.position = "none")
+)# 
+#)
+#plot(nmmds,type="t")
+dev.off()
+pdf(paste(figPath,"mdsdim1dim3ellipseall.pdf",sep=""),width = 10, height = 10)
+#plot(dim1nm,dim2nm,type="n")
+#text(dim1nm, dim2nm, labels = row.names(data), cex=.7)
+print(
+ggplot(df3,aes(x = MDS1,y = MDS3,label=rownames(df3),color=factor(groups))) + stat_ellipse(geom = "polygon", alpha = 1/2, aes(fill = factor(groups))) + geom_point(size=1) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension III") + scale_color_discrete(name = "Group",labels = groupLabs)  + ggtitle(material)+ geom_text(data=df3centroids,aes(x = MDS1,y = MDS3,label=c("Individually\n identifiable\n background","Transients coinciding \n with onscreen action","Dialogue","Transients not\n coinciding with\n onscreen action\n + UNGROUPED","Non-diegetic music\n and diffuse background"),color=factor(groups))) + theme(legend.position = "none")
+)# 
+#)
+#plot(nmmds,type="t")
+dev.off()
+pdf(paste(figPath,"mdsdim2dim3ellipseall.pdf",sep=""),width = 10, height = 10)
+#plot(dim1nm,dim2nm,type="n")
+#text(dim1nm, dim2nm, labels = row.names(data), cex=.7)
+print(
+ggplot(df3,aes(x = MDS2,y = MDS3,label=rownames(df3),color=factor(groups))) + stat_ellipse(geom = "polygon", alpha = 1/2, aes(fill = factor(groups))) + geom_point(size=1) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension II",y = "Dimension III") + scale_color_discrete(name = "Group",labels = groupLabs)  + ggtitle(material)+ geom_text(data=df3centroids,aes(x = MDS2,y = MDS3,label=c("Individually\n identifiable\n background","Transients coinciding \n with onscreen action","Dialogue","Transients not\n coinciding with\n onscreen action\n + UNGROUPED","Non-diegetic music\n and diffuse background"),color=factor(groups))) + theme(legend.position = "none")
 )# 
 #)
 #plot(nmmds,type="t")
