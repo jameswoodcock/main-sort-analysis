@@ -403,6 +403,14 @@ for (i in 1:mdsClusters)
 write.table(clusterTable[[paste(i)]],paste(figPath,"allGroups",i,".csv",sep=""),sep=",")
 }
 
+colClust <- hclust(dist(t(dataAll)),"ward.D2")
+pdf(paste(figPath,paste("labels_and_object_clusters_",material,".pdf",sep=""),sep=""),width = 11, height = 13)
+par(mfrow=c(2,1))
+plot(colClust, xlab=NA, sub=NA, main=NA, cex = 0.5)
+rect.hclust(colClust,k=mdsClusters,border="red")
+plot(rowClust, xlab=NA, sub=NA, main=NA, cex = 0.5)
+rect.hclust(rowClust,k=mdsClusters,border="red")
+dev.off()
 
 
 

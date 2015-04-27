@@ -356,7 +356,7 @@ heatmap(as.matrix(dataAll),hclustfun=function(d) hclust(d,method='ward.D2'),marg
 ,0,-0.01)),main=paste(material,"all listerners"))
 dev.off()
 
-rowClust <- hclust(dist(dataAll),"ward.D2")
+rowClust <- hclust(dist(dataAll),"ward.D2")	#Clustering of labels
 cutMat <- as.matrix(cutree(rowClust,k=mdsClusters))
 clusterTable <- split(row.names(cutMat),cutMat)
 
@@ -400,10 +400,42 @@ for (i in 1:mdsClusters)
 write.table(clusterTable[[paste(i)]],paste(figPath,"allGroups",i,".csv",sep=""),sep=",")
 }
 
+colClust <- hclust(dist(t(dataAll)),"ward.D2")
+pdf(paste(figPath,paste("labels_and_object_clusters_",material,".pdf",sep=""),sep=""),width = 11, height = 13)
+par(mfrow=c(2,1))
+plot(colClust, xlab=NA, sub=NA, main=NA, cex = 0.5)
+rect.hclust(colClust,k=mdsClusters,border="red")
+plot(rowClust, xlab=NA, sub=NA, main=NA, cex = 0.5)
+rect.hclust(rowClust,k=mdsClusters,border="red")
+dev.off()
 
+pdf(paste(figPath,paste("exp_nonexp_clusters_",material,".pdf",sep=""),sep=""),width = 11, height = 13)
+par(mfrow=c(2,1))
+plot(rowClustExp, xlab=NA, sub=NA, main=NA, cex = 0.5)
+rect.hclust(rowClustExp,k=mdsClusters,border="red")
+plot(rowClustNon, xlab=NA, sub=NA, main=NA, cex = 0.5)
+rect.hclust(rowClustNon,k=mdsClusters,border="red")
+dev.off()
 
+##Prune dendrograms for paper figures
 
+prunedClust <- as.dendrogram(rowClust)
+for (i in 1:mdsClusters)
+{
+prunedClust <- prune(prunedClust,clusterTable[[i]][seq(length(clusterTable[[i]])-1)])
+}
 
+pdf(paste(figPath,"dendro_labels_pruned.pdf",sep=""),width = 11, height = 8)
+par(mar=c(15,5,5,5))
+plot(set(prunedClust,"labels",c("Sounds related to actions and movement","Clear speech","Attention grabbing","Music and effects","Background (diffuse and localisable)")), xlab=NA, sub=NA, main=NA, cex = 0.5)
+dev.off()
+
+pdf(paste(figPath,paste("pruned_illustration_",material,".pdf",sep=""),sep=""),width = 11, height = 13)
+par(mfrow=c(2,1))
+plot(prunedClust, xlab=NA, sub=NA, main=NA, cex = 0.5)
+plot(rowClust, xlab=NA, sub=NA, main=NA, cex = 0.5)
+rect.hclust(rowClust,k=mdsClusters,border="red")
+dev.off()
 
 
 

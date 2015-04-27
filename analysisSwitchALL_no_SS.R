@@ -7,8 +7,9 @@ library(pvclust)
 library(dendextend)
 library(gplots)
 library(devtools)
+source_url("https://raw.github.com/JoFrhwld/FAAV/master/r/stat-ellipse.R")
 
-material = "RD"
+material = "ALL_no_SS"
 screePlot = FALSE
 ellipsePlot = FALSE
 figPath = paste("./plots/",material,"/",sep="")
@@ -16,8 +17,11 @@ pvals = FALSE
 
 data <- read.csv(paste("./data/data",material,".csv",sep=""),row.names=1,header=T)
 experience <- read.csv(paste("./data/experience.csv",sep=""),row.names=1,header=T)
+materialFactor <- read.csv(paste("./data/dataALLMaterial.csv",sep=""),row.names=1,header=F)
+importance <- read.csv(paste("./data/all_objects_importance_missing_vals.csv",sep=""),row.names=1,header=T)
 
 experience <- experience[colnames(data),]
+meanImportance <- rowMeans(importance)
 
 acousticsExp <- array(rep(experience[,1],each = nrow(data)^2), c(nrow(data),nrow(data),ncol(data)))
 engineerExp <- array(rep(experience[,2],each = nrow(data)^2), c(nrow(data),nrow(data),ncol(data)))
@@ -62,7 +66,6 @@ ngroupsNonEngineer[which(ngroupsNonEngineer==0)] = NA
 
 ngroupsbar <- data.frame(participant = colnames(data),ngroups = ngroups)
 mdsClusters = ceiling(median(ngroups))
-#mdsClusters = 8
 mdsClustersEngineer = ceiling(median(ngroupsEngineer,na.rm=TRUE))
 mdsClustersNonEngineer = ceiling(median(ngroupsNonEngineer,na.rm=TRUE))
 
@@ -74,17 +77,18 @@ ggplot(ngroupsbar,aes(x=participant,ngroups)) + geom_bar(stat="identity") + labs
 )
 dev.off()
 
-pdf(paste(figPath,"dendro_all.pdf",sep=""),width = 11, height = 8)
+pdf(paste(figPath,"dendro_all.pdf",sep=""),width = 44, height = 8)
 #plot(clust,hang=-1)
 plot(clust, xlab=NA, sub=NA, main=NA, cex = 0.5)
 rect.hclust(clust,k=mdsClusters,border="red")
 dev.off()
-pdf(paste(figPath,"dendro_engineer.pdf",sep=""),width = 11, height = 8)
+pdf(paste(figPath,"dendro_engineer.pdf",sep=""),width = 44, height = 8)
 #plot(clust,hang=-1)
 plot(clustEngineer, xlab=NA, sub=NA, main=NA, cex = 0.5)
-rect.hclust(clustEngineer,k=mdsClustersEngineer,border="red")
+rect.hclust(clustEngineer,k=mdsClustersEngineer
+,border="red")
 dev.off()
-pdf(paste(figPath,"dendro_non_engineer.pdf",sep=""),width = 11, height = 8)
+pdf(paste(figPath,"dendro_non_engineer.pdf",sep=""),width = 44, height = 8)
 #plot(clust,hang=-1)
 plot(clustNonEngineer, xlab=NA, sub=NA, main=NA, cex = 0.5)
 rect.hclust(clustNonEngineer,k=mdsClustersNonEngineer,border="red")
@@ -92,12 +96,12 @@ dev.off()
 
 
 for (i in 2:11) {
-#pdf(paste(figPath,"dendro_",i,"groups.pdf",sep=""),width = 11, height = 8)
+#pdf(paste(figPath,"dendro_",i,"groups.pdf",sep=""),width = 44, height = 8)
 #plot(clust, xlab=NA, sub=NA, main=NA, cex = 0.5)
 #rect.hclust(clust,k=i,border="red")
 #dev.off()
 if (i==mdsClusters){
-pdf(paste(figPath,"dendro_median_groups.pdf",sep=""),width = 11, height = 8)
+pdf(paste(figPath,"dendro_median_groups.pdf",sep=""),width = 44, height = 8)
 #plot(clust,hang=-1)
 plot(clust, xlab=NA, sub=NA, main=NA, cex = 0.5)
 rect.hclust(clust,k=i,border="red")
@@ -111,20 +115,28 @@ mdsRes <- mmds(totDist)
 if (screePlot == TRUE){
 nmmds <- metaMDS(totDist,k=2,zerodist="add")
 stress <- nmmds$stress
+corCoef <- cor(dist(nmmds$points),dist(totDist))
 nmmds <- metaMDS(totDist,k=3,zerodist="add")
 stress <- append(stress,nmmds$stress)
+corCoef <- append(corCoef,cor(dist(nmmds$points),dist(totDist)))
 nmmds <- metaMDS(totDist,k=4,zerodist="add")
 stress <- append(stress,nmmds$stress)
+corCoef <- append(corCoef,cor(dist(nmmds$points),dist(totDist)))
 nmmds <- metaMDS(totDist,k=5,zerodist="add")
 stress <- append(stress,nmmds$stress)
+corCoef <- append(corCoef,cor(dist(nmmds$points),dist(totDist)))
 nmmds <- metaMDS(totDist,k=6,zerodist="add")
 stress <- append(stress,nmmds$stress)
+corCoef <- append(corCoef,cor(dist(nmmds$points),dist(totDist)))
 nmmds <- metaMDS(totDist,k=7,zerodist="add")
 stress <- append(stress,nmmds$stress)
+corCoef <- append(corCoef,cor(dist(nmmds$points),dist(totDist)))
 nmmds <- metaMDS(totDist,k=8,zerodist="add")
 stress <- append(stress,nmmds$stress)
+corCoef <- append(corCoef,cor(dist(nmmds$points),dist(totDist)))
 nmmds <- metaMDS(totDist,k=9,zerodist="add")
 stress <- append(stress,nmmds$stress)
+corCoef <- append(corCoef,cor(dist(nmmds$points),dist(totDist)))
 dims <- 2:9
 
 scree <- data.frame(dims,stress)
@@ -160,37 +172,83 @@ groupLabs <- append(groupLabs,toString(i))
 
 textSize = 3
 
-pdf(paste(figPath,"mdsdim1dim2text.pdf",sep=""),width = 10, height = 10)
+pdf(paste(figPath,"mdsdim1dim2text.pdf",sep=""),width = 15, height = 15)
 print(
 ggplot(df3,aes(x = MDS1,y = MDS2,label=rownames(df3),color=factor(groups))) + geom_text(size = textSize) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension II") + scale_color_discrete(name = "Group",labels = groupLabs) + theme(legend.position = c(.9,.9)) + ggtitle(material)
 )
 dev.off()
 
-pdf(paste(figPath,"mdsdim1dim3text.pdf",sep=""),width = 10, height = 10)
+pdf(paste(figPath,"mdsdim1dim3text.pdf",sep=""),width = 15, height = 15)
 print(
 ggplot(df3,aes(x = MDS1,y = MDS3,label=rownames(df3),color=factor(groups))) + geom_text(size = textSize) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension III") + scale_color_discrete(name = "Group",labels = groupLabs) + theme(legend.position = c(.9,.9)) + ggtitle(material)
 )
 dev.off()
 
-pdf(paste(figPath,"mdsdim2dim3text.pdf",sep=""),width = 10, height = 10)
+pdf(paste(figPath,"mdsdim2dim3text.pdf",sep=""),width = 15, height = 15)
 print(
 ggplot(df3,aes(x = MDS2,y = MDS3,label=rownames(df3),color=factor(groups))) + geom_text(size = textSize) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension II",y = "Dimension III") + scale_color_discrete(name = "Group",labels = groupLabs) + theme(legend.position = c(.9,.9)) + ggtitle(material)
 )
 dev.off()
 
 if (mdsDims > 3){
-pdf(paste(figPath,"mdsdim1dim4text.pdf",sep=""),width = 10, height = 10)
+pdf(paste(figPath,"mdsdim1dim4text.pdf",sep=""),width = 15, height = 15)
 print(
 ggplot(df3,aes(x = MDS1,y = MDS4,label=rownames(df3),color=factor(groups))) + geom_text(size = textSize) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension IV") + scale_color_discrete(name = "Group",labels = groupLabs) + theme(legend.position = c(.9,.9)) + ggtitle(material)
 )
 dev.off()
 
-pdf(paste(figPath,"mdsdim3dim4text.pdf",sep=""),width = 10, height = 10)
+pdf(paste(figPath,"mdsdim3dim4text.pdf",sep=""),width = 15, height = 15)
 print(
 ggplot(df3,aes(x = MDS3,y = MDS4,label=rownames(df3),color=factor(groups))) + geom_text(size = textSize) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension IV") + scale_color_discrete(name = "Group",labels = groupLabs) + theme(legend.position = c(.9,.9)) + ggtitle(material)
 )
 dev.off()
 }
+
+##Plots with material colouring
+
+#pdf(paste(figPath,"mdsdim1dim2material.pdf",sep=""),width = 10, height = 10)
+#print(
+#ggplot(df3,aes(x = MDS1,y = MDS2,label=rownames(df3),color=factor(materialFactor[,1]))) + geom_point() + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension II") + scale_color_discrete(name = "Group",labels = groupLabs) + theme(legend.position = c(.9,.9)) + ggtitle(material)
+#)
+#dev.off()
+
+#pdf(paste(figPath,"mdsdim1dim3material.pdf",sep=""),width = 10, height = 10)
+#print(
+#ggplot(df3,aes(x = MDS1,y = MDS3,label=rownames(df3),color=factor(materialFactor[,1]))) + geom_point() + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension III") + scale_color_discrete(name = "Group",labels = groupLabs) + theme(legend.position = c(.9,.9)) + ggtitle(material)
+#)
+#dev.off()
+
+#pdf(paste(figPath,"mdsdim2dim3material.pdf",sep=""),width = 10, height = 10)
+#print(
+#ggplot(df3,aes(x = MDS2,y = MDS3,label=rownames(df3),color=factor(materialFactor[,1]))) + geom_point() + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension II",y = "Dimension III") + scale_color_discrete(name = "Group",labels = groupLabs) + theme(legend.position = c(.9,.9)) + ggtitle(material)
+#)
+#dev.off()
+
+##Plots with group colouring and importance sizing
+
+pdf(paste(figPath,"mdsdim1dim2importance.pdf",sep=""),width = 10, height = 10)
+print(
+ggplot(df3,aes(x = MDS1,y = MDS2,label=rownames(df3),color=factor(df3$groups))) + geom_point(aes(size = meanImportance*10)) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension II") + scale_color_discrete(name = "Group",labels = groupLabs) + theme(legend.position = c(.9,.9)) + ggtitle(material)
+)
+dev.off()
+
+pdf(paste(figPath,"mdsdim1dim3importance.pdf",sep=""),width = 10, height = 10)
+print(
+ggplot(df3,aes(x = MDS1,y = MDS3,label=rownames(df3),color=factor(df3$groups))) + geom_point(aes(size = meanImportance*10)) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension III") + scale_color_discrete(name = "Group",labels = groupLabs) + theme(legend.position = c(.9,.9)) + ggtitle(material)
+)
+dev.off()
+
+pdf(paste(figPath,"mdsdim2dim3importance.pdf",sep=""),width = 10, height = 10)
+print(
+ggplot(df3,aes(x = MDS2,y = MDS3,label=rownames(df3),color=factor(df3$groups))) + geom_point(aes(size = meanImportance*10)) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension II",y = "Dimension III") + scale_color_discrete(name = "Group",labels = groupLabs) + theme(legend.position = c(.9,.9)) + ggtitle(material)
+)
+dev.off()
+
+#pdf('prefmap.pdf')
+#print(
+#res.carto <- carto(nmmds$points[,1:2],importance,graph.tree=FALSE,graph.corr = FALSE)
+#)
+#dev.off()
 
 ##DISTATIS analysis
 
@@ -227,7 +285,7 @@ if (mdsDims >3){
 df3Engineer["MDS4"] <- proEngineer$Yrot[,4]
 }
 
-pdf(paste(figPath,"mdsdim1dim2textengineer.pdf",sep=""),width = 10, height = 10)
+pdf(paste(figPath,"mdsdim1dim2textengineer.pdf",sep=""),width = 15, height = 15)
 #plot(dim1nm,dim2nm,type="n")
 #text(dim1nm, dim2nm, labels = row.names(data), cex=.7)
 print(
@@ -236,7 +294,7 @@ ggplot(df3Engineer,aes(x = MDS1,y = MDS2,label=rownames(df3),color=factor(groups
 #plot(nmmds,type="t")
 dev.off()
 
-pdf(paste(figPath,"mdsdim1dim2textnonengineer.pdf",sep=""),width = 10, height = 10)
+pdf(paste(figPath,"mdsdim1dim2textnonengineer.pdf",sep=""),width = 15, height = 15)
 #plot(dim1nm,dim2nm,type="n")
 #text(dim1nm, dim2nm, labels = row.names(data), cex=.7)
 print(
@@ -282,8 +340,7 @@ dev.off()
 #Ellipses
 
 if (ellipsePlot == TRUE){
-library(devtools)
-source_url("https://raw.github.com/JoFrhwld/FAAV/master/r/stat-ellipse.R")
+
 #ggplot(df3Engineer,aes(x = MDS1,y = MDS2,label=rownames(df3),color=factor(groups))) + stat_ellipse(geom = "polygon", alpha = 1/2, aes(fill = factor(groups))) + geom_point(aes(shape=factor(groups)),size=1)
 
 df3centroidsEngineer <- aggregate(df3Engineer,by=list(groupsEngineer),FUN="mean")
@@ -291,10 +348,10 @@ pdf(paste(figPath,"mdsdim1dim2ellipseengineer.pdf",sep=""),width = 10, height = 
 #plot(dim1nm,dim2nm,type="n")
 #text(dim1nm, dim2nm, labels = row.names(data), cex=.7)
 print(
-ggplot(df3Engineer,aes(x = MDS1,y = MDS2,label=rownames(df3Engineer),color=factor(groupsEngineer))) + stat_ellipse(geom = "polygon", alpha = 1/2, aes(fill = factor(groupsEngineer))) + geom_point(size=1) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension II") + scale_color_discrete(name = "Group",labels = groupLabs)  + ggtitle(material) + geom_text(data=df3centroidsEngineer,aes(x = MDS1,y = MDS2,label=c("1","2","3","4","5","6"),color=factor(groupsEngineer)),fontface="bold") + theme(legend.position = "none")
+ggplot(df3Engineer,aes(x = MDS1,y = MDS2,label=rownames(df3Engineer),color=factor(groupsEngineer))) + stat_ellipse(geom = "polygon", alpha = 1/2, aes(fill = factor(groupsEngineer))) + geom_point(size=1) + theme_bw()  + labs(x = "Dimension I",y = "Dimension II") + scale_color_discrete(name = "Group",labels = groupLabs)  + ggtitle(material) + geom_text(data=df3centroidsEngineer,aes(x = MDS1,y = MDS2,label=c("Diffuse\natmos","2","3","Dialogue","5","6","7","8"),color=factor(df3centroidsEngineer$groups)),fontface="bold") + theme(legend.position = "none")
 )# 
 #)
-#plot(nmmds,type="t")
+#plot(nmmds,type="t") + xlim(-2,2) + ylim(-2,2)
 dev.off()
 
 df3centroidsNonEngineer <- aggregate(df3NonEngineer,by=list(groupsNonEngineer),FUN="mean")
@@ -302,7 +359,7 @@ pdf(paste(figPath,"mdsdim1dim2ellipsenonengineer.pdf",sep=""),width = 10, height
 #plot(dim1nm,dim2nm,type="n")
 #text(dim1nm, dim2nm, labels = row.names(data), cex=.7)
 print(
-ggplot(df3NonEngineer,aes(x = MDS1,y = MDS2,label=rownames(df3NonEngineer),color=factor(groupsNonEngineer))) + stat_ellipse(geom = "polygon", alpha = 1/2, aes(fill = factor(groupsNonEngineer))) + geom_point(size=1) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension II") + scale_color_discrete(name = "Group",labels = groupLabs)  + ggtitle(material)+ geom_text(data=df3centroidsNonEngineer,aes(x = MDS1,y = MDS2,label=c("1","2","3","4"),color=factor(groupsNonEngineer))) + theme(legend.position = "none")
+ggplot(df3NonEngineer,aes(x = MDS1,y = MDS2,label=rownames(df3NonEngineer),color=factor(groupsNonEngineer))) + stat_ellipse(geom = "polygon", alpha = 1/2, aes(fill = factor(groupsNonEngineer))) + geom_point(size=1) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension II") + scale_color_discrete(name = "Group",labels = groupLabs)  + ggtitle(material)+ geom_text(data=df3centroidsNonEngineer,aes(x = MDS1,y = MDS2,label=c("1","2","3","4","5","6","7"),color=factor(groupsNonEngineer))) + theme(legend.position = "none")
 )# 
 #)
 #plot(nmmds,type="t")
@@ -313,30 +370,42 @@ pdf(paste(figPath,"mdsdim1dim2ellipseall.pdf",sep=""),width = 10, height = 10)
 #plot(dim1nm,dim2nm,type="n")
 #text(dim1nm, dim2nm, labels = row.names(data), cex=.7)
 print(
-ggplot(df3,aes(x = MDS1,y = MDS2,label=rownames(df3),color=factor(groups))) + stat_ellipse(geom = "polygon", alpha = 1/2, aes(fill = factor(groups))) + geom_point(size=1) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension II") + scale_color_discrete(name = "Group",labels = groupLabs)  + ggtitle(material)+ geom_text(data=df3centroids,aes(x = MDS1,y = MDS2,label=c("Ambient/\nenvironmental\nsounds","Sounds\nindicating\nactions","Dialogue","Non diegetic\nmusic","Vocalisations"),color=factor(groups))) + theme(legend.position = "none")
+ggplot(df3,aes(x = MDS1,y = MDS2,label=rownames(df3),color=factor(groups))) + stat_ellipse(geom = "polygon", alpha = 1/2, aes(fill = factor(groups))) + geom_point(size=1) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension II") + scale_color_discrete(name = "Group",labels = groupLabs)  + ggtitle(material)+ geom_text(data=df3centroids,aes(x = MDS1,y = MDS2,label=c("Continuous\nbackground sound","Sounds\nrelated to\n offscreen actions","Dialogue","Non-diegetic\nmusic and\neffects","Vocalisations","Sounds\nrelated to\n onscreen actions","Crowd reaction\nand prescence\nof people"),color=factor(groups))) + theme(legend.position = "none")
 )# 
 #)
 #plot(nmmds,type="t")
 dev.off()
-df3centroids <- aggregate(df3,by=list(groups),FUN="mean")
+
 pdf(paste(figPath,"mdsdim1dim3ellipseall.pdf",sep=""),width = 10, height = 10)
 #plot(dim1nm,dim2nm,type="n")
 #text(dim1nm, dim2nm, labels = row.names(data), cex=.7)
 print(
-ggplot(df3,aes(x = MDS1,y = MDS3,label=rownames(df3),color=factor(groups))) + stat_ellipse(geom = "polygon", alpha = 1/2, aes(fill = factor(groups))) + geom_point(size=1) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension III") + scale_color_discrete(name = "Group",labels = groupLabs)  + ggtitle(material)+ geom_text(data=df3centroids,aes(x = MDS1,y = MDS3,label=c("Ambient/\nenvironmental\nsounds","Sounds\nindicating\nactions","Dialogue","Non diegetic\nmusic","Vocalisations"),color=factor(groups))) + theme(legend.position = "none")
+ggplot(df3,aes(x = MDS1,y = MDS3,label=rownames(df3),color=factor(groups))) + stat_ellipse(geom = "polygon", alpha = 1/2, aes(fill = factor(groups))) + geom_point(size=1) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension III") + scale_color_discrete(name = "Group",labels = groupLabs)  + ggtitle(material)+ geom_text(data=df3centroids,aes(x = MDS1,y = MDS3,label=c("Continuous\nbackground sound","Sounds\nrelated to\n offscreen actions","Dialogue","Non-diegetic\nmusic and\neffects","Vocalisations","Sounds\nrelated to\n onscreen actions","Crowd reaction\nand prescence\nof people"),color=factor(groups))) + theme(legend.position = "none")
 )# 
 #)
 #plot(nmmds,type="t")
 dev.off()
-df3centroids <- aggregate(df3,by=list(groups),FUN="mean")
+
 pdf(paste(figPath,"mdsdim2dim3ellipseall.pdf",sep=""),width = 10, height = 10)
 #plot(dim1nm,dim2nm,type="n")
 #text(dim1nm, dim2nm, labels = row.names(data), cex=.7)
 print(
-ggplot(df3,aes(x = MDS2,y = MDS3,label=rownames(df3),color=factor(groups))) + stat_ellipse(geom = "polygon", alpha = 1/2, aes(fill = factor(groups))) + geom_point(size=1) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension II",y = "Dimension III") + scale_color_discrete(name = "Group",labels = groupLabs)  + ggtitle(material)+ geom_text(data=df3centroids,aes(x = MDS2,y = MDS3,label=c("Ambient/\nenvironmental\nsounds","Sounds\nindicating\nactions","Dialogue","Non diegetic\nmusic","Vocalisations"),color=factor(groups))) + theme(legend.position = "none")
+ggplot(df3,aes(x = MDS2,y = MDS3,label=rownames(df3),color=factor(groups))) + stat_ellipse(geom = "polygon", alpha = 1/2, aes(fill = factor(groups))) + geom_point(size=1) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension II",y = "Dimension III") + scale_color_discrete(name = "Group",labels = groupLabs)  + ggtitle(material)+ geom_text(data=df3centroids,aes(x = MDS2,y = MDS3,label=c("Continuous\nbackground sound","Sounds\nrelated to\n offscreen actions","Dialogue","Non-diegetic\nmusic and\neffects","Vocalisations","Sounds\nrelated to\n onscreen actions","Crowd reaction\nand prescence\nof people"))) + theme(legend.position = "none")
 )# 
 #)
 #plot(nmmds,type="t")
+dev.off()
+
+p12 <- ggplot(df3,aes(x = MDS1,y = MDS2,label=rownames(df3),color=factor(groups))) + stat_ellipse(geom = "polygon", alpha = 1/2, aes(fill = factor(groups))) + geom_point(size=1) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension II") + scale_color_discrete(name = "Group",labels = groupLabs)  + geom_text(data=df3centroids,aes(x = MDS1,y = MDS2,label=c("Continuous\nbackground sound","Sounds\nrelated to\n offscreen actions","Dialogue","Non-diegetic\nmusic and\neffects","Vocalisations","Sounds\nrelated to\n onscreen actions","Crowd reaction\nand prescence\nof people"))) + theme(legend.position = "none")
+
+p23 <- ggplot(df3,aes(x = MDS2,y = MDS3,label=rownames(df3),color=factor(groups))) + stat_ellipse(geom = "polygon", alpha = 1/2, aes(fill = factor(groups))) + geom_point(size=1) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension II",y = "Dimension III") + scale_color_discrete(name = "Group",labels = groupLabs)  + geom_text(data=df3centroids,aes(x = MDS2,y = MDS3,label=c("Continuous\nbackground sound","Sounds\nrelated to\n offscreen actions","Dialogue","Non-diegetic\nmusic and\neffects","Vocalisations","Sounds\nrelated to\n onscreen actions","Crowd reaction\nand prescence\nof people"))) + theme(legend.position = "none")
+
+
+p13 <- ggplot(df3,aes(x = MDS1,y = MDS3,label=rownames(df3),color=factor(groups))) + stat_ellipse(geom = "polygon", alpha = 1/2, aes(fill = factor(groups))) + geom_point(size=1) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension III") + scale_color_discrete(name = "Group",labels = groupLabs)  + geom_text(data=df3centroids,aes(x = MDS1,y = MDS3,label=c("Continuous\nbackground sound","Sounds\nrelated to\n offscreen actions","Dialogue","Non-diegetic\nmusic and\neffects","Vocalisations","Sounds\nrelated to\n onscreen actions","Crowd reaction\nand prescence\nof people"))) + theme(legend.position = "none")
+
+
+pdf(paste(figPath,"ellipse_all.pdf",sep=""),width = 15, height = 15)
+multiplot(p12,p23,p13,cols=2)
 dev.off()
 }
 
@@ -346,15 +415,17 @@ dataExp <- read.csv(paste("./data/labels_data/labels",material,"Exp.csv",sep="")
 dataNonExp <- read.csv(paste("./data/labels_data/labels",material,"NonExp.csv",sep=""),row.names=1,header=T)
 dataAll <- read.csv(paste("./data/labels_data/labels",material,"All.csv",sep=""),row.names=1,header=T)
 
-pdf(paste(figPath,"clustergramExp.pdf",sep=""),width = 16, height = 18)
+pdf(paste(figPath,"clustergramExp.pdf",sep=""),width = 32, height = 36)
 heatmap(as.matrix(dataExp),hclustfun=function(d) hclust(d,method='ward.D2'),margins=c(20,20),scale='none',col=grey(seq(0.9
 ,0,-0.01)),main=paste(material,"experienced listerners"))
 dev.off()
-pdf(paste(figPath,"clustergramNonExp.pdf",sep=""),width = 16, height = 18)
+
+pdf(paste(figPath,"clustergramNonExp.pdf",sep=""),width = 32, height = 36)
 heatmap(as.matrix(dataNonExp),hclustfun=function(d) hclust(d,method='ward.D2'),margins=c(20,20),scale='none',col=grey(seq(0.9
 ,0,-0.01)),main=paste(material,"naive listerners"))
 dev.off()
-pdf(paste(figPath,"clustergramAll.pdf",sep=""),width = 16, height = 18)
+
+pdf(paste(figPath,"clustergramAll.pdf",sep=""),width = 32, height = 36)
 heatmap(as.matrix(dataAll),hclustfun=function(d) hclust(d,method='ward.D2'),margins=c(20,20),scale='none',col=grey(seq(0.9
 ,0,-0.01)),main=paste(material,"all listerners"))
 dev.off()
@@ -403,18 +474,43 @@ for (i in 1:mdsClusters)
 write.table(clusterTable[[paste(i)]],paste(figPath,"allGroups",i,".csv",sep=""),sep=",")
 }
 
+dfRegress <- data.frame(y = meanImportance, x1 = nmmds$points[,1],x2 = nmmds$points[,2],x3 = nmmds$points[,3])
 
-colClust <- hclust(dist(t(dataAll)),"ward.D2")
-pdf(paste(figPath,paste("labels_and_object_clusters_",material,".pdf",sep=""),sep=""),width = 11, height = 13)
-par(mfrow=c(2,1))
-plot(colClust, xlab=NA, sub=NA, main=NA, cex = 0.5)
-rect.hclust(colClust,k=mdsClusters,border="red")
-plot(rowClust, xlab=NA, sub=NA, main=NA, cex = 0.5)
-rect.hclust(rowClust,k=mdsClusters,border="red")
-dev.off()
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  require(grid)
 
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
 
+  numPlots = length(plots)
 
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                    ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+
+ if (numPlots==1) {
+    print(plots[[1]])
+
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
 
 
 
