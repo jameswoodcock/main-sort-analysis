@@ -10,7 +10,7 @@ library(devtools)
 source_url("https://raw.github.com/JoFrhwld/FAAV/master/r/stat-ellipse.R")
 
 material = "ALL_no_SS"
-screePlot = FALSE
+screePlot = TRUE
 ellipsePlot = FALSE
 figPath = paste("./plots/",material,"/",sep="")
 pvals = FALSE
@@ -18,7 +18,7 @@ pvals = FALSE
 data <- read.csv(paste("./data/data",material,".csv",sep=""),row.names=1,header=T)
 experience <- read.csv(paste("./data/experience.csv",sep=""),row.names=1,header=T)
 materialFactor <- read.csv(paste("./data/dataALLMaterial.csv",sep=""),row.names=1,header=F)
-importance <- read.csv(paste("./data/all_objects_importance_missing_vals.csv",sep=""),row.names=1,header=T)
+importance <- read.csv(paste("./data/all_objects_importance_missing_vals_no_SS.csv",sep=""),row.names=1,header=T)
 
 experience <- experience[colnames(data),]
 meanImportance <- rowMeans(importance)
@@ -228,7 +228,7 @@ dev.off()
 
 pdf(paste(figPath,"mdsdim1dim2importance.pdf",sep=""),width = 10, height = 10)
 print(
-ggplot(df3,aes(x = MDS1,y = MDS2,label=rownames(df3),color=factor(df3$groups))) + geom_point(aes(size = meanImportance*10)) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension II") + scale_color_discrete(name = "Group",labels = groupLabs) + theme(legend.position = c(.9,.9)) + ggtitle(material)
+ggplot(df3,aes(x = MDS1,y = MDS2,label=rownames(df3),color=factor(groups))) + geom_point(aes(size = meanImportance*10)) + theme_bw() + xlim(-0.6,0.6) + ylim(-0.6,0.6) + labs(x = "Dimension I",y = "Dimension II") + scale_color_discrete(name = "Group",labels = groupLabs) + theme(legend.position = c(.9,.9)) + ggtitle(material)
 )
 dev.off()
 
