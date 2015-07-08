@@ -433,7 +433,13 @@ prunedClust <- prune(prunedClust,clusterTable[[i]][seq(length(clusterTable[[i]])
 
 pdf(paste(figPath,"dendro_labels_pruned.pdf",sep=""),width = 11, height = 8)
 par(mar=c(15,5,5,5))
-plot(set(prunedClust,"labels",c("Sounds related to\n actions and movement","Non-diegetic\nmusic and effects","Background sounds\n(diffuse and localisable)","Narration","Prominent animal\nvocalisations")), xlab=NA,sub=NA, main=NA, cex = 0.5)
+plot(set(prunedClust,"labels",c("Sounds related to\n actions and movement","Non-diegetic\nmusic and effects","Background sounds\n(diffuse and localisable)","Narration","Prominent animal\nvocalisations")), xlab=NA,sub=NA, main=NA, cex = 0.5,axes=FALSE)
+dev.off()
+
+setEPS()
+postscript(paste(figPath,"dendro_labels_pruned.eps",sep=""),width = 11, height = 8)
+par(mar=c(15,5,5,5))
+plot(set(prunedClust,"labels",c("Sounds related to\n actions and movement","Non-diegetic\nmusic and effects","Background sounds\n(diffuse and localisable)","Narration","Prominent animal\nvocalisations")), xlab=NA,sub=NA, main=NA, cex = 0.5,axes=FALSE)
 dev.off()
 
 

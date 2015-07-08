@@ -411,7 +411,18 @@ rect.hclust(rowClust,k=mdsClusters,border="red")
 dev.off()
 
 
+##Prune dendrograms for paper figures
 
+prunedClust <- as.dendrogram(rowClust)
+for (i in 1:mdsClusters)
+{
+prunedClust <- prune(prunedClust,clusterTable[[i]][seq(length(clusterTable[[i]])-1)])
+}
+
+pdf(paste(figPath,"dendro_labels_pruned.pdf",sep=""),width = 11, height = 8)
+par(mar=c(15,5,5,5))
+plot(set(prunedClust,"labels",c("Low level event sounds","Continuous background","Music\nVehicle sounds\nLow level impact sounds","Human voices and vocalisations","High level event sounds")), xlab=NA,sub=NA, main=NA, cex = 0.5)
+dev.off()
 
 
 

@@ -10,8 +10,8 @@ library(devtools)
 source_url("https://raw.github.com/JoFrhwld/FAAV/master/r/stat-ellipse.R")
 
 material = "ALL"
-screePlot = FALSE
-ellipsePlot = TRUE
+screePlot = TRUE
+ellipsePlot = FALSE
 figPath = paste("./plots/",material,"/",sep="")
 pvals = FALSE
 
@@ -142,6 +142,13 @@ dims <- 2:9
 scree <- data.frame(dims,stress)
 
 pdf(paste(figPath,"scree.pdf",sep=""),width = 10,height = 10)
+print(
+ggplot(scree, aes(x = dims, y = stress)) + geom_line(linetype=2) + geom_point(shape=1) + theme_bw() + labs(x = "Number of dimensions",y = "Stress")
+)
+dev.off()
+
+setEPS()
+postscript(paste(figPath,"scree.pdf",sep=""),width = 10,height = 10)
 print(
 ggplot(scree, aes(x = dims, y = stress)) + geom_line(linetype=2) + geom_point(shape=1) + theme_bw() + labs(x = "Number of dimensions",y = "Stress")
 )
@@ -434,10 +441,11 @@ rowClust <- hclust(dist(dataAll),"ward.D2")
 cutMat <- as.matrix(cutree(rowClust,k=mdsClusters))
 clusterTable <- split(row.names(cutMat),cutMat)
 
-pdf(paste(figPath,"dendro_labels_all.pdf",sep=""),width = 11, height = 8)
+pdf(paste(figPath,"dendro_labels_all.pdf",sep=""),width = 10, height = 25)
 #plot(clust,hang=-1)
-plot(rowClust, xlab=NA, sub=NA, main=NA, cex = 0.5)
-rect.hclust(rowClust,k=mdsClusters,border="red")
+par(mar=c(5,1,1,30))
+plot(as.dendrogram(rowClust), xlab=NA, sub=NA, main=NA, cex = 0.5,horiz=TRUE)
+rect.dendrogram(as.dendrogram(rowClust),k=mdsClusters,border="red",horiz=TRUE,lower_rect=-80)
 dev.off()
 
 rowClustNon <- hclust(dist(dataNonExp),"ward.D2")

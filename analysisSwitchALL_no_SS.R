@@ -10,7 +10,7 @@ library(devtools)
 source_url("https://raw.github.com/JoFrhwld/FAAV/master/r/stat-ellipse.R")
 
 material = "ALL_no_SS"
-screePlot = TRUE
+screePlot = FALSE
 ellipsePlot = FALSE
 figPath = paste("./plots/",material,"/",sep="")
 pvals = FALSE
@@ -475,6 +475,8 @@ write.table(clusterTable[[paste(i)]],paste(figPath,"allGroups",i,".csv",sep=""),
 }
 
 dfRegress <- data.frame(y = meanImportance, x1 = nmmds$points[,1],x2 = nmmds$points[,2],x3 = nmmds$points[,3])
+
+fitImp <- lm(y ~ x1 + x2 + x3,dfRegress)
 
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
   require(grid)

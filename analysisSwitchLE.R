@@ -422,10 +422,14 @@ prunedClust <- prune(prunedClust,clusterTable[[i]][seq(length(clusterTable[[i]])
 
 pdf(paste(figPath,"dendro_labels_pruned.pdf",sep=""),width = 11, height = 8)
 par(mar=c(15,5,5,5))
-plot(set(prunedClust,"labels",c("Commentary and \nclear speech","Primary event sounds:\n- Music\n-Sport event sounds)","Impact sounds","Crowd reaction","Localisable Background sounds")), xlab=NA,sub=NA, main=NA, cex = 0.5)
+plot(set(prunedClust,"labels",c("Commentary and \nclear speech","Primary event sounds:\nMusic\n-Sport event sounds","Impact sounds","Crowd reaction","Localisable Background sounds")), xlab=NA,sub=NA, main=NA, cex = 0.5,axes=FALSE)
 dev.off()
 
-
+setEPS()
+postscript(paste(figPath,"dendro_labels_pruned.eps",sep=""),width = 11, height = 8)
+par(mar=c(15,5,5,5))
+plot(set(prunedClust,"labels",c("Commentary and \nclear speech","Primary event sounds:\nMusic\n-Sport event sounds","Impact sounds","Crowd reaction","Localisable Background sounds")), xlab=NA,sub=NA, main=NA, cex = 0.5,axes=FALSE)
+dev.off()
 
 
 
